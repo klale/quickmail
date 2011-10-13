@@ -5,7 +5,6 @@ from email.mime.text import MIMEText
 from email.mime.image import MIMEImage
 from email.mime.base import MIMEBase
 from email import Encoders
-import formencode as fe
 import logging
 
 from quickmail.error import MailException
@@ -47,7 +46,6 @@ class Mail(object):
     """
     Send a simple text and/or html e-mail with optional attachments
     """
-    emailValidator = fe.validators.Email()
 
     @classmethod
     def connect(cls, host, user=None, password=None):
