@@ -8,3 +8,10 @@ Supports
 - Attachments
 - Embedded images in html mails
 
+
+
+Using embedded images in html mail
+------------------------------------
+cid is short for "Content-ID". See __init__.py
+
+<img src="cid:t.gif">
