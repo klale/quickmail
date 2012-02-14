@@ -1,4 +1,5 @@
 import smtplib
+import mimetypes
 import os
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -17,6 +18,10 @@ log = logging.getLogger(__name__)
 # =========
 def embed():
     pass
+
+def guess_mime_tuple(filename, default='application/octet-stream'):
+    mimetype, encoding = mimetypes.guess_type(filename or '')
+    return (mimetype or default).split('/')
 
 class readfile(object):
     
@@ -84,7 +89,13 @@ class Mail(object):
         kw[text] = Unicode
         kw[encoding] = String, encoding of message, default is "utf-8"
         kw[returnPath] = Unicode, email address
-        kw[attachments] = List of Bin instances or paths (Strings) to files to attach to message.
+        kw[attachments] = Files to attach to message. List of filelike, path or 2- or 3 tuples, or 
+            any combination of these. Examples:
+            attachments=['/path/to/file/']
+            attachments=[filelike, '/path/to/second_file.jpg']
+            attachments=[('attached_file_name.jpg', filelike)]
+            attachments=[('attached_file_name.jpg', filelike, 'image/jpeg')]
+            
         kw[images] = List of (id, image) tuples to embed in the email for use in a html message.
                      Example: [('myphoto', 'path/to/photo.jpg')] <img src="cid:myphoto">
         kw[headers] = Dict of additional headers, eg: {headerName: "headerValue"}
@@ -148,21 +159,42 @@ class Mail(object):
             # Arbitrary attachments of any file type
             if self.attachments:
                 for f in self.attachments:
-                    part = MIMEBase('application', 'octet-stream')
-                    # if isinstance(f, Bin):
-                    if f.__class__.__name__ == 'Attachment': # Todo: remove ACM related from this module
-                        part.set_payload(f.read())
-                        fileName = f.filename
+                    mime_type = ''
+                    mime_tuple = None
+                    if type(f) is tuple:
+                        if len(f) == 3:
+                            filename, f, mime_type = f
+                            mime_tuple = mime_type.split('/')
+                        else:
+                            filename, f = f
                     else:
+                        filename = None    
+
+                    if hasattr(f, 'read'):
+                        # File-like
+                        if not filename:
+                            filename = getattr(f, 'filename', None)
+                        part = MIMEBase(*(mime_tuple or guess_mime_tuple(filename)))
+                        part.set_payload(f.read())
+                        
+                    elif isinstance(f, basestring):
+                        # File path
+                        if not filename:
+                            filename = os.path.basename(f)                        
+                        part = MIMEBase(*(mime_tuple or guess_mime_tuple(filename)))
                         part.set_payload(open(f,'rb').read())
-                        fileName = os.path.basename(f)
+                    else:
+                        raise MailException('Invalid attachment: %s' % f)
+
+                    if not filename:
+                        filename = 'no_file_name'
                     
                     Encoders.encode_base64(part)
                     # Content-Disposition can also be set to inline, then attached files wont show up
                     # in list over attached files, but can be used in mail message, eg embedded images. 
                     # See source of an apple mail created with a stationary.
-                    part.add_header('Content-Disposition', 'attachment; filename="%s"' % fileName)
-                    part.add_header('Content-ID', "<%s>" % fileName)
+                    part.add_header('Content-Disposition', 'attachment; filename="%s"' % filename)
+                    part.add_header('Content-ID', "<%s>" % filename)
                     msgRoot.attach(part)
 
             # Embedded images for use in html mail                    
