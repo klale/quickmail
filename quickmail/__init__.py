@@ -170,6 +170,7 @@ class Mail(object):
                 for cid, img in self.images:
                     # Create part
                     if img.__class__.__name__ == 'Attachment': # Todo: remove ACM related from this module
+                        img.seek(0)
                         part = MIMEImage(img.read())
                     else:
                         fp = open(img, 'rb')
