@@ -257,4 +257,56 @@ class Mail(object):
         #    pass
 
 
+class QuickMail(object):
+    """
+    Configured maining object.
+    quickmail = QuickMail('localhost:587', 'username', '12345')
+    with quickmail.session() as s:
+        for email in emails:
+            q.send(fr='a@b.com', to=email, subject='Test', text='Bla bla')
 
+    
+    
+    """
+    def __init__(self, server, username=None, password=None):
+        self.server = server
+        self.username = username
+        self.password = password
+        
+    def send(self, *args, **kw):
+        try:
+            conn = self.get_connection()
+            Mail(*args, **kw).send(conn)
+        finally:
+            conn.close()
+    
+    def connection(self):
+        return QuickMailConnection(self.server, self.username, self.password)
+    
+        
+class QuickMailConnection(object):
+    
+    def __init__(self, server, username, password):
+        self.server = server
+        self.username = username
+        self.password = password        
+
+    def __enter__(self):
+        self.connection = Mail.connect(self.server, self.username, self.password)
+        return self
+    
+    def __exit__(self, type, value, traceback):
+        self.connection.close()
+    
+    def send(self, *args, **kw):
+        if isinstance(args[0], Mail):
+            mail = args[0]
+        else:
+            mail = Mail(*args, **kw).send(self.connection)
+        mail.send(self.connection)
+        
+        
+        
+        
+        
+        
