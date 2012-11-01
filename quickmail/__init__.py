@@ -299,10 +299,10 @@ class QuickMailConnection(object):
         self.connection.close()
     
     def send(self, *args, **kw):
-        if isinstance(args[0], Mail):
+        if args and isinstance(args[0], Mail):
             mail = args[0]
         else:
-            mail = Mail(*args, **kw).send(self.connection)
+            mail = Mail(*args, **kw)
         mail.send(self.connection)
         
         
