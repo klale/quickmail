@@ -261,10 +261,11 @@ class QuickMail(object):
     """
     Configured maining object.
     quickmail = QuickMail('localhost:587', 'username', '12345')
-    with quickmail.session() as s:
+    with quickmail.connection() as conn:
         for email in emails:
-            q.send(fr='a@b.com', to=email, subject='Test', text='Bla bla')
+            conn.send(fr='a@b.com', to=email, subject='Test', text='Bla bla')
 
+    After the iteration, the single connection is implictly closed.
     
     
     """
@@ -274,14 +275,12 @@ class QuickMail(object):
         self.password = password
         
     def send(self, *args, **kw):
-        try:
-            conn = self.get_connection()
-            Mail(*args, **kw).send(conn)
-        finally:
-            conn.close()
+        with self.connection() as conn:
+            conn.send(*args, **kw)    
     
     def connection(self):
         return QuickMailConnection(self.server, self.username, self.password)
+        
     
         
 class QuickMailConnection(object):
