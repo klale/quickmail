@@ -96,7 +96,8 @@ class Mail(object):
             attachments=[('attached_file_name.jpg', filelike)]
             attachments=[('attached_file_name.jpg', filelike, 'image/jpeg')]
             
-        kw[images] = List of (id, image) tuples to embed in the email for use in a html message.
+        kw[images] = List of (id, image) tuples (or the equivalent dict) to embed in the email 
+                     for use in a html message.
                      Example: [('myphoto', 'path/to/photo.jpg')] <img src="cid:myphoto">
         kw[headers] = Dict of additional headers, eg: {headerName: "headerValue"}
         
@@ -112,6 +113,9 @@ class Mail(object):
         self.images = kw.get('images', None)
         self.returnPath = kw.get('returnPath', None)
         self.headers = kw.get('headers', {})
+        
+        if isinstance(self.images, dict):
+            self.images = self.images.items()
         
         # encode any given unicodes to self.encoding (python's mail module doesn't do any encoding)
         for a in ['html', 'text']:
