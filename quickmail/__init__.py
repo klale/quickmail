@@ -179,6 +179,9 @@ class Mail(object):
                         if not filename:
                             filename = getattr(f, 'filename', None)
                         part = MIMEBase(*(mime_tuple or guess_mime_tuple(filename)))
+                        
+                        # Ensure pointer is at beginning of file
+                        f.seek(0)
                         part.set_payload(f.read())
                         
                     elif isinstance(f, basestring):
@@ -186,7 +189,8 @@ class Mail(object):
                         if not filename:
                             filename = os.path.basename(f)                        
                         part = MIMEBase(*(mime_tuple or guess_mime_tuple(filename)))
-                        part.set_payload(open(f,'rb').read())
+                        with open(f,'rb') as fp:
+                            part.set_payload(fp.read())
                     else:
                         raise MailException('Invalid attachment: %s' % f)
 
