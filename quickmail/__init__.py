@@ -217,7 +217,9 @@ class Mail(object):
                         part = MIMEImage(fp.read())
                         fp.close()
 
-                    part.add_header('Content-Disposition', 'inline; filename=%s' % cid)                        
+                    # UPDATE: setting inline made the images appear as attachments
+                    # Removing the header fixed it. Don't know why I added it in the first place
+                    # part.add_header('Content-Disposition', 'inline; filename=%s' % cid)                        
                     part.add_header('Content-ID', "<%s>" % cid)
                     msgRoot.attach(part)
                     
