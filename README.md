@@ -9,10 +9,16 @@ Package for creating and sending multipart emails in python 2.7.
  - Inline all rules of referenced stylesheets
  - Embed images and backgrounds
 
-### Dependencies
-For HTML and stylesheet processing:
- - tinycss
- - pyquery
+### Install
+
+```sh
+# Debian example (python3-dev for python 3)
+apt-get install gcc python-dev libxml2-dev libxslt1-dev zlib1g-dev
+
+# Install optional python dependecies for HTML and stylesheet processing
+pip install tinycss pyquery
+```
+
 
 ### Example: Send a plain text email
 
